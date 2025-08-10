@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz App Auth</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+    <h1>Quiz App Authentication</h1>
+
+    <div class="section">
+      <h2>Login</h2>
+      <input type="text" id="loginIdentifier" placeholder="Enter email or username">
+      <input type="password" id="loginPassword" placeholder="Enter password">
+      <button onclick="login()">Login</button>
+      <p class="sign_up" id="sign_up_link" >Sign up</p>
+      <p id="loginMsg"></p>
+    </div>
+    <!-- Request OTP -->
+    <div class="section2" style="display: none;">
+        <h2>1. Request OTP</h2>
+        <input type="email" id="otpEmail" placeholder="Enter your email">
+        <button onclick="requestOtp()">Request OTP</button>
+        <p id="otpMsg"></p>
+    </div>
+
+    <!-- Verify OTP -->
+    <div class="section3" style="display: none;">
+        <h2>2. Verify OTP</h2>
+        <input type="email" id="verifyEmail" placeholder="Enter your email">
+        <input type="text" id="otpCode" placeholder="Enter OTP">
+        <button onclick="verifyOtp()">Verify OTP</button>
+        <p id="verifyMsg"></p>
+    </div>
+
+    <!-- Signup -->
+    <div class="section4" style="display: none;">
+        <h2>3. Signup</h2>
+        <input type="email" id="signupEmail" placeholder="Enter your email">
+        <input type="text" id="signupUsername" placeholder="Enter username">
+        <input type="password" id="signupPassword" placeholder="Enter password">
+        <button onclick="signup()">Signup</button>
+        <p id="signupMsg"></p>
+    </div>
+
+<script>
+  document.getElementById("sign_up_link").addEventListener("click", function() {
+    // Hide section 1
+    document.querySelector(".section").style.display = "none";
+
+    // Show signup section
+    document.querySelector(".section2").style.display = "flex";
+  });
+
+  const API_BASE = "http://localhost:3000";
+
+  function setLoggedInUser(user) {
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+  }
+
+  function getLoggedInUser() {
+    const userJSON = localStorage.getItem("loggedInUser");
+    if (!userJSON) return null;
+    return JSON.parse(userJSON);
+  }
+
+  async function login() {
+  const identifier = document.getElementById("loginIdentifier").value;
+  const password = document.getElementById("loginPassword").value;
+
+  const res = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, password })
+  });
+  const data = await res.json();
+  console.log("Login response:", data);  // <-- Add this line
+  document.getElementById("loginMsg").textContent = data.message || data.error;
+
+  if (data.success) {
+      setLoggedInUser({ identifier, username: data.username || identifier });
+      window.location.href = "quiz.html";
+  }
+}
+
+
+  // Your existing OTP, verifyOtp, signup functions stay the same...
+
+  async function requestOtp() {
+      const email = document.getElementById("otpEmail").value;
+      const res = await fetch(`${API_BASE}/request-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      document.getElementById("otpMsg").textContent = data.message || data.error;
+      document.querySelector(".section2").style.display = "none";
+      document.querySelector(".section3").style.display = "flex";
+  }
+
+  async function verifyOtp() {
+      const email = document.getElementById("verifyEmail").value;
+      const otp = document.getElementById("otpCode").value;
+      const res = await fetch(`${API_BASE}/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp })
+      });
+      const data = await res.json();
+      document.getElementById("verifyMsg").textContent = data.message || data.error;
+      document.querySelector(".section3").style.display = "none";
+      document.querySelector(".section4").style.display = "flex";
+  }
+
+  async function signup() {
+      const email = document.getElementById("signupEmail").value;
+      const username = document.getElementById("signupUsername").value;
+      const password = document.getElementById("signupPassword").value;
+      const res = await fetch(`${API_BASE}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, username, password })
+      });
+      const data = await res.json();
+      document.getElementById("signupMsg").textContent = data.message || data.error;
+      document.querySelector(".section4").style.display = "none";
+      document.querySelector(".section").style.display = "flex";
+  }
+
+</script>
+
+</body>
+</html>
